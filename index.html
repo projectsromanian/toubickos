@@ -1,14 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<title>toubickOS</title>
-<style>
-body {
-  font-family: Calibri;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>toubickOS</title>
+    <style>
+        body, html { margin: 0; height: 100%; font-family: -apple-system, sans-serif; overflow: hidden; background: #050505; }
+        canvas { position: absolute; top: 0; left: 0; z-index: -1; }
+        
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 5000; color: white; flex-direction: column; transition: opacity 1s; }
+        .box { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; backdrop-filter: blur(20px); text-align: center; }
+        
+        .window { position: absolute; width: 450px; height: 350px; background: rgba(255,255,255,0.95); border-radius: 10px; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+        .title-bar { height: 30px; background: #ddd; display: flex; align-items: center; padding: 0 10px; cursor: move; justify-content: space-between; }
+        .close-btn { background: #ff5f56; width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+        .content { padding: 15px; flex-grow: 1; overflow: auto; }
+        
+        .dock { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.15); padding: 10px; border-radius: 20px; display: flex; gap: 20px; backdrop-filter: blur(15px); }
+        .app-icon { cursor: pointer; font-size: 30px; transition: 0.2s; }
+        .app-icon:hover { transform: scale(1.2); }
+    </style>
+</head>
 <body>
-<h1>Мы стараемся уже создать готовую версию toubickOS</h1>
-<p>Ждите, скоро закончим!</p>
+
+    <canvas id="neuralCanvas"></canvas>
+
+    <div id="login-screen" class="screen">
+        <div class="box">
+            <h1>toubickOS</h1>
+            <input type="text" id="nameInput" placeholder="Ваше имя"><br><br>
+            <button onclick="login()">Войти</button>
+        </div>
+    </div>
+
+    <div id="os-interface" style="display:none">
+        <div class="window" id="win-finder"><div class="title-bar" onmousedown="drag(event, 'win-finder')">Finder <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content">📂 Документы<br>📂 Загрузки<br>📂 Фото</div></div>
+        <div class="window" id="win-browser"><div class="title-bar" onmousedown="drag(event, 'win-browser')">Браузер <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><input type="text" id="url" value="https://wikipedia.org" style="width:70%"><button onclick="document.getElementById('frame').src=document.getElementById('url').value">GO</button><iframe id="frame" src="https://wikipedia.org" style="width:100%;height:80%"></iframe></div></div>
+        <div class="window" id="win-notepad"><div class="title-bar" onmousedown="drag(event, 'win-notepad')">Блокнот <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><textarea style="width:95%;height:90%"></textarea></div></div>
+        <div class="window" id="win-calc"><div class="title-bar" onmousedown="drag(event, 'win-calc')">Калькулятор <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><input id="res" style="width:90%"><br><button onclick="document.getElementById('res').value=eval(document.getElementById('res').value)">=</button></div></div>
+        <div class="window" id="win-settings"><div class="title-bar" onmousedown="drag(event, 'win-settings')">Настройки <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><p>Добро пожаловать в toubickOS, <span id="displayUser"></span>!</p></div></div>
+
+        <div class="dock">
+            <div class="app-icon" onclick="document.getElementById('win-finder').style.display='flex'">📁</div>
+            <div class="app-icon" onclick="document.getElementById('win-browser').style.display='flex'">🌐</div>
+            <div class="app-icon" onclick="document.getElementById('win-notepad').style.display='flex'">📝</div>
+            <div class="app-icon" onclick="document.getElementById('win-calc').style.display='flex'">🧮</div>
+            <div class="app-icon" onclick="document.getElementById('win-settings').style.display='flex'">⚙️</div>
+        </div>
+    </div>
+
+    <script>
+        window.login = () => {
+            const name = document.getElementById('nameInput').value;
+            if(!name) return;
+            document.getElementById('displayUser').innerText = name;
+            document.getElementById('login-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('os-interface').style.display = 'block';
+            }, 1000);
+        };
+
+        window.drag = (e, id) => {
+            let win = document.getElementById(id);
+            let sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
+            document.onmousemove = (e) => { win.style.left = (e.clientX - sx) + 'px'; win.style.top = (e.clientY - sy) + 'px'; };
+            document.onmouseup = () => document.onmousemove = null;
+        };
+
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let p = Array.from({length: 60}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5), vy: (Math.random()-0.5)}));
+        function animate() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+            p.forEach(pt => {
+                pt.x += pt.vx; pt.y += pt.vy;
+                if(pt.x<0 || pt.x>canvas.width) pt.vx*=-1; if(pt.y<0 || pt.y>canvas.height) pt.vy*=-1;
+                p.forEach(pt2 => { if(Math.hypot(pt.x-pt2.x, pt.y-pt2.y) < 150) { ctx.beginPath(); ctx.moveTo(pt.x, pt.y); ctx.lineTo(pt2.x, pt2.y); ctx.stroke(); }});
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
 </body>
 </html>

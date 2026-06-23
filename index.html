@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>toubickOS</title>
+    <!-- Интеграция Telegram Mini App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body, html { margin: 0; height: 100%; font-family: -apple-system, sans-serif; overflow: hidden; background: #050505; }
         canvas { position: absolute; top: 0; left: 0; z-index: -1; }
@@ -21,14 +23,20 @@
     </style>
 </head>
 <body>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+    </script>
 
     <canvas id="neuralCanvas"></canvas>
 
     <div id="login-screen" class="screen">
         <div class="box">
             <h1>toubickOS</h1>
+            <p>Установка завершена</p>
             <input type="text" id="nameInput" placeholder="Ваше имя"><br><br>
-            <button onclick="login()">Войти</button>
+            <button onclick="login()">Войти в систему</button>
         </div>
     </div>
 
@@ -37,7 +45,7 @@
         <div class="window" id="win-browser"><div class="title-bar" onmousedown="drag(event, 'win-browser')">Браузер <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><input type="text" id="url" value="https://wikipedia.org" style="width:70%"><button onclick="document.getElementById('frame').src=document.getElementById('url').value">GO</button><iframe id="frame" src="https://wikipedia.org" style="width:100%;height:80%"></iframe></div></div>
         <div class="window" id="win-notepad"><div class="title-bar" onmousedown="drag(event, 'win-notepad')">Блокнот <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><textarea style="width:95%;height:90%"></textarea></div></div>
         <div class="window" id="win-calc"><div class="title-bar" onmousedown="drag(event, 'win-calc')">Калькулятор <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><input id="res" style="width:90%"><br><button onclick="document.getElementById('res').value=eval(document.getElementById('res').value)">=</button></div></div>
-        <div class="window" id="win-settings"><div class="title-bar" onmousedown="drag(event, 'win-settings')">Настройки <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><p>Добро пожаловать в toubickOS, <span id="displayUser"></span>!</p></div></div>
+        <div class="window" id="win-settings"><div class="title-bar" onmousedown="drag(event, 'win-settings')">Настройки <div class="close-btn" onclick="this.parentElement.parentElement.style.display='none'"></div></div><div class="content"><p>Добро пожаловать, <span id="displayUser"></span>!</p></div></div>
 
         <div class="dock">
             <div class="app-icon" onclick="document.getElementById('win-finder').style.display='flex'">📁</div>
